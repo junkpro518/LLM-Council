@@ -38,6 +38,7 @@ services:
       - internal
     labels:
       - "traefik.enable=true"
+      - "traefik.docker.network=proxy"
       - "traefik.http.routers.llm-council.rule=Host(`llm-council.junkpro.duckdns.org`)"
       - "traefik.http.routers.llm-council.entrypoints=websecure"
       - "traefik.http.routers.llm-council.tls.certresolver=myresolver"
