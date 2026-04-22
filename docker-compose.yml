@@ -1,0 +1,64 @@
+services:
+  llm-council-backend:
+    build:
+      context: .
+      dockerfile: Dockerfile.backend
+    image: llm-council-backend:latest
+    container_name: llm-council-backend
+    restart: unless-stopped
+    env_file: .env
+    volumes:
+      - llm-council-data:/app/data
+    networks:
+      - internal
+    deploy:
+      resources:
+        limits:
+          memory: 512m
+          cpus: '0.5'
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+
+  llm-council-frontend:
+    build:
+      context: .
+      dockerfile: Dockerfile.frontend
+      args:
+        VITE_API_BASE: ""
+    image: llm-council-frontend:latest
+    container_name: llm-council-frontend
+    restart: unless-stopped
+    depends_on:
+      - llm-council-backend
+    networks:
+      - proxy
+      - internal
+    labels:
+      - "traefik.enable=true"
+      - "traefik.docker.network=proxy"
+      - "traefik.http.routers.llm-council.rule=Host(`llm-council.junkpro.duckdns.org`)"
+      - "traefik.http.routers.llm-council.entrypoints=websecure"
+      - "traefik.http.routers.llm-council.tls.certresolver=myresolver"
+      - "traefik.http.services.llm-council.loadbalancer.server.port=80"
+    deploy:
+      resources:
+        limits:
+          memory: 128m
+          cpus: '0.25'
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "5m"
+        max-file: "3"
+
+networks:
+  proxy:
+    external: true
+  internal:
+    driver: bridge
+
+volumes:
+  llm-council-data:
