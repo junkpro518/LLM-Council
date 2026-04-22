@@ -21,3 +21,4 @@ frontend/dist/
 frontend/.vite/.claude/
 .DS_Store
 Icon*
+.claude/
