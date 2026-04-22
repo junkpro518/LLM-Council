@@ -10,12 +10,43 @@
   border: 1px solid #c8e6c8;
 }
 
+.response-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 12px;
+}
+
 .chairman-label {
   color: #2d8a2d;
   font-size: 12px;
   font-family: monospace;
-  margin-bottom: 12px;
   font-weight: 600;
+}
+
+.copy-btn {
+  padding: 6px 12px;
+  background: #f0f0f0;
+  border: 1px solid #d0d0d0;
+  border-radius: 4px;
+  color: #666;
+  font-size: 13px;
+  cursor: pointer;
+  transition: all 0.3s;
+  white-space: nowrap;
+  margin-left: 12px;
+}
+
+.copy-btn:hover {
+  background: #e0f2f1;
+  border-color: #4a90e2;
+  color: #4a90e2;
+}
+
+.copy-btn.copied {
+  background: #c8e6c9;
+  border-color: #2e7d32;
+  color: #2e7d32;
 }
 
 .final-text {

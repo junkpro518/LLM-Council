@@ -1,0 +1,197 @@
+.statistics-modal {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  padding: 20px;
+}
+
+.statistics-content {
+  background: white;
+  border-radius: 12px;
+  max-width: 1000px;
+  width: 100%;
+  max-height: 90vh;
+  overflow-y: auto;
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
+}
+
+.statistics-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 24px;
+  border-bottom: 2px solid #e0e0e0;
+}
+
+.statistics-header h2 {
+  margin: 0;
+  font-size: 24px;
+  color: #333;
+}
+
+.close-btn {
+  background: transparent;
+  border: none;
+  font-size: 28px;
+  color: #999;
+  cursor: pointer;
+  padding: 0;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  transition: all 0.2s;
+}
+
+.close-btn:hover {
+  background-color: #f0f0f0;
+  color: #333;
+}
+
+.statistics-summary {
+  display: flex;
+  gap: 20px;
+  padding: 24px;
+  background-color: #f8f9fa;
+}
+
+.summary-item {
+  flex: 1;
+  text-align: center;
+  padding: 16px;
+  background: white;
+  border-radius: 8px;
+  border: 1px solid #e0e0e0;
+}
+
+.summary-label {
+  font-size: 14px;
+  color: #666;
+  margin-bottom: 8px;
+}
+
+.summary-value {
+  font-size: 32px;
+  font-weight: bold;
+  color: #4a90e2;
+}
+
+.statistics-table-container {
+  padding: 24px;
+  overflow-x: auto;
+}
+
+.statistics-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 14px;
+}
+
+.statistics-table thead {
+  background-color: #f5f5f5;
+}
+
+.statistics-table th {
+  padding: 12px;
+  text-align: right;
+  font-weight: 600;
+  color: #333;
+  border-bottom: 2px solid #e0e0e0;
+}
+
+.statistics-table td {
+  padding: 12px;
+  text-align: right;
+  border-bottom: 1px solid #f0f0f0;
+}
+
+.statistics-table tbody tr {
+  transition: background-color 0.2s;
+}
+
+.statistics-table tbody tr:hover {
+  background-color: #f8f9fa;
+}
+
+.statistics-table tbody tr.top-model {
+  background-color: #fff8e1;
+}
+
+.rank-cell {
+  font-size: 18px;
+  text-align: center !important;
+  width: 60px;
+}
+
+.model-cell {
+  font-weight: 600;
+  color: #4a90e2;
+  max-width: 200px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.avg-rank-cell {
+  font-weight: 600;
+  font-size: 16px;
+  text-align: center !important;
+}
+
+.win-rate-cell {
+  font-weight: 600;
+  color: #2e7d32;
+  text-align: center !important;
+}
+
+.place-cell {
+  text-align: center !important;
+  font-weight: 600;
+}
+
+.place-cell.gold {
+  color: #ffa000;
+}
+
+.place-cell.silver {
+  color: #757575;
+}
+
+.place-cell.bronze {
+  color: #d84315;
+}
+
+.total-cell {
+  text-align: center !important;
+  color: #666;
+}
+
+.statistics-footer {
+  padding: 16px 24px;
+  background-color: #f8f9fa;
+  border-top: 1px solid #e0e0e0;
+}
+
+.note {
+  margin: 0;
+  font-size: 13px;
+  color: #666;
+  text-align: center;
+}
+
+.loading, .error {
+  padding: 40px;
+  text-align: center;
+  font-size: 16px;
+  color: #666;
+}
+
+.error {
+  color: #d32f2f;
+}

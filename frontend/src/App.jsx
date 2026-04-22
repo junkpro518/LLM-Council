@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import Sidebar from './components/Sidebar';
 import ChatInterface from './components/ChatInterface';
+import Statistics from './components/Statistics';
 import { api } from './api';
 import './App.css';
 
@@ -9,6 +10,7 @@ function App() {
   const [currentConversationId, setCurrentConversationId] = useState(null);
   const [currentConversation, setCurrentConversation] = useState(null);
   const [isLoading, setIsLoading] = useState(false);
+  const [showStatistics, setShowStatistics] = useState(false);
 
   // Load conversations on mount
   useEffect(() => {
@@ -26,6 +28,10 @@ function App() {
     try {
       const convs = await api.listConversations();
       setConversations(convs);
+      // Auto-select the first conversation if available
+      if (convs.length > 0 && !currentConversationId) {
+        setCurrentConversationId(convs[0].id);
+      }
     } catch (error) {
       console.error('Failed to load conversations:', error);
     }
@@ -55,6 +61,38 @@ function App() {
 
   const handleSelectConversation = (id) => {
     setCurrentConversationId(id);
+  };
+
+  const handleDeleteConversation = async (id) => {
+    // Confirm deletion in Arabic
+    const confirmed = window.confirm('هل أنت متأكد من حذف هذه المحادثة؟ لا يمكن التراجع عن هذا الإجراء.');
+
+    if (!confirmed) return;
+
+    try {
+      await api.deleteConversation(id);
+
+      // Remove from conversations list
+      setConversations(conversations.filter(conv => conv.id !== id));
+
+      // Clear current conversation if it's the deleted one
+      if (currentConversationId === id) {
+        setCurrentConversationId(null);
+        setCurrentConversation(null);
+      }
+
+    } catch (error) {
+      console.error('Failed to delete conversation:', error);
+      alert('فشل حذف المحادثة. يرجى المحاولة مرة أخرى.');
+    }
+  };
+
+  const handleShowStatistics = () => {
+    setShowStatistics(true);
+  };
+
+  const handleCloseStatistics = () => {
+    setShowStatistics(false);
   };
 
   const handleSendMessage = async (content) => {
@@ -188,12 +226,17 @@ function App() {
         currentConversationId={currentConversationId}
         onSelectConversation={handleSelectConversation}
         onNewConversation={handleNewConversation}
+        onDeleteConversation={handleDeleteConversation}
+        onShowStatistics={handleShowStatistics}
       />
       <ChatInterface
         conversation={currentConversation}
         onSendMessage={handleSendMessage}
         isLoading={isLoading}
       />
+      {showStatistics && (
+        <Statistics onClose={handleCloseStatistics} />
+      )}
     </div>
   );
 }

@@ -106,12 +106,13 @@ async def send_message(conversation_id: str, request: SendMessageRequest):
         request.content
     )
 
-    # Add assistant message with all stages
+    # Add assistant message with all stages AND METADATA
     storage.add_assistant_message(
         conversation_id,
         stage1_results,
         stage2_results,
-        stage3_result
+        stage3_result,
+        metadata=metadata
     )
 
     # Return the complete response with metadata
@@ -120,6 +121,104 @@ async def send_message(conversation_id: str, request: SendMessageRequest):
         "stage2": stage2_results,
         "stage3": stage3_result,
         "metadata": metadata
+    }
+
+
+@app.delete("/api/conversations/{conversation_id}")
+async def delete_conversation(conversation_id: str):
+    """Delete a conversation."""
+    success = storage.delete_conversation(conversation_id)
+    if not success:
+        raise HTTPException(status_code=404, detail="Conversation not found")
+    return {"success": True, "message": "Conversation deleted successfully"}
+
+
+@app.get("/api/statistics")
+async def get_statistics():
+    """
+    Get comprehensive statistics about model performance across all conversations.
+    Returns aggregated data about model rankings, win rates, and performance.
+    """
+    from collections import defaultdict
+
+    conversations = storage.list_conversations()
+
+    # Initialize stats
+    model_stats = defaultdict(lambda: {
+        'total_responses': 0,
+        'first_place_count': 0,
+        'second_place_count': 0,
+        'third_place_count': 0,
+        'total_rank_sum': 0,
+        'total_rankings': 0,
+        'average_rank': 0
+    })
+
+    total_conversations = 0
+
+    # Process each conversation
+    for conv_meta in conversations:
+        conv = storage.get_conversation(conv_meta['id'])
+        if not conv or not conv.get('messages'):
+            continue
+
+        # Find assistant messages with metadata
+        for message in conv['messages']:
+            if message.get('role') != 'assistant':
+                continue
+
+            metadata = message.get('metadata')
+            if not metadata:
+                continue
+
+            # Process stage1 responses
+            stage1 = message.get('stage1', [])
+            for response in stage1:
+                model = response.get('model')
+                if model:
+                    model_stats[model]['total_responses'] += 1
+
+            # Process aggregate rankings
+            aggregate_rankings = metadata.get('aggregate_rankings', [])
+            for ranking in aggregate_rankings:
+                model = ranking.get('model')
+                avg_rank = ranking.get('average_rank', 0)
+
+                if not model:
+                    continue
+
+                model_stats[model]['total_rank_sum'] += avg_rank
+                model_stats[model]['total_rankings'] += 1
+
+                # Count placements (1st, 2nd, 3rd)
+                if avg_rank <= 1.5:
+                    model_stats[model]['first_place_count'] += 1
+                elif avg_rank <= 2.5:
+                    model_stats[model]['second_place_count'] += 1
+                else:
+                    model_stats[model]['third_place_count'] += 1
+
+            total_conversations += 1
+
+    # Calculate averages
+    for model, stats in model_stats.items():
+        if stats['total_rankings'] > 0:
+            stats['average_rank'] = stats['total_rank_sum'] / stats['total_rankings']
+
+    # Convert to sorted list
+    stats_list = []
+    for model, stats in model_stats.items():
+        stats_list.append({
+            'model': model,
+            **stats
+        })
+
+    # Sort by average rank (lower is better)
+    stats_list.sort(key=lambda x: x['average_rank'] if x['average_rank'] > 0 else 999)
+
+    return {
+        'total_conversations_analyzed': total_conversations,
+        'model_statistics': stats_list
     }
 
 
@@ -156,7 +255,14 @@ async def send_message_stream(conversation_id: str, request: SendMessageRequest)
             yield f"data: {json.dumps({'type': 'stage2_start'})}\n\n"
             stage2_results, label_to_model = await stage2_collect_rankings(request.content, stage1_results)
             aggregate_rankings = calculate_aggregate_rankings(stage2_results, label_to_model)
-            yield f"data: {json.dumps({'type': 'stage2_complete', 'data': stage2_results, 'metadata': {'label_to_model': label_to_model, 'aggregate_rankings': aggregate_rankings}})}\n\n"
+
+            # Create metadata object
+            metadata = {
+                'label_to_model': label_to_model,
+                'aggregate_rankings': aggregate_rankings
+            }
+
+            yield f"data: {json.dumps({'type': 'stage2_complete', 'data': stage2_results, 'metadata': metadata})}\n\n"
 
             # Stage 3: Synthesize final answer
             yield f"data: {json.dumps({'type': 'stage3_start'})}\n\n"
@@ -169,12 +275,13 @@ async def send_message_stream(conversation_id: str, request: SendMessageRequest)
                 storage.update_conversation_title(conversation_id, title)
                 yield f"data: {json.dumps({'type': 'title_complete', 'data': {'title': title}})}\n\n"
 
-            # Save complete assistant message
+            # Save complete assistant message WITH METADATA
             storage.add_assistant_message(
                 conversation_id,
                 stage1_results,
                 stage2_results,
-                stage3_result
+                stage3_result,
+                metadata=metadata
             )
 
             # Send completion event
